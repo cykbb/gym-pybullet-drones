@@ -90,7 +90,7 @@ class HoverAviary(BaseRLAviary):
 
         """
         state = self._getDroneStateVector(0)
-        if np.linalg.norm(self.TARGET_POS-state[0:3]) < .0001:
+        if np.linalg.norm(self.TARGET_POS-state[0:3]) < .1:#.0001:
             return True
         else:
             return False
