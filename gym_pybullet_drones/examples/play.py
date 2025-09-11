@@ -13,7 +13,8 @@ from gym_pybullet_drones.utils.Logger import Logger
 DEFAULT_MODEL_PATH = "results/best_model.zip"
 DEFAULT_GUI = True
 DEFAULT_OBS = ObservationType('kin')
-DEFAULT_ACT = ActionType('one_d_rpm')
+# DEFAULT_ACT = ActionType('one_d_rpm')
+DEFAULT_ACT = ActionType('rpm')
 DEFAULT_AGENTS = 2
 DEFAULT_MA = False
 
