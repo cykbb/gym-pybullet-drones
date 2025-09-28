@@ -10,7 +10,8 @@ from gym_pybullet_drones.utils.enums import ObservationType, ActionType
 from gym_pybullet_drones.utils.utils import sync
 from gym_pybullet_drones.utils.Logger import Logger
 
-DEFAULT_MODEL_PATH = "results/best_model.zip"
+# DEFAULT_MODEL_PATH = "results/best_model.zip"
+DEFAULT_MODEL_PATH = '/home/annaj/codebase/nus_ceg_homework/ceg5306/pa3/gym-pybullet-drones/results/save-09.28.2025_21.33.14/best_model.zip'
 DEFAULT_GUI = True
 DEFAULT_OBS = ObservationType('kin')
 # DEFAULT_ACT = ActionType('one_d_rpm')

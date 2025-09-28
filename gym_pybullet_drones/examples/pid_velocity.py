@@ -140,6 +140,7 @@ def run(
 
         #### Printout ##############################################
         env.render()
+        print(f"Step {i+1}/{int(duration_sec*env.CTRL_FREQ)}", end="\r")
 
         #### Sync the simulation ###################################
         if gui:

@@ -118,7 +118,7 @@ def run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_
         path = filename+'/best_model.zip'
     else:
         print("[ERROR]: no model under the specified path", filename)
-    model = PPO.load(path)
+    model = PPO.load(path) # type: ignore
 
     #### Show (and record a video of) the model's performance ##
     if not multiagent:
@@ -149,7 +149,7 @@ def run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_
     obs, info = test_env.reset(seed=42, options={})
     start = time.time()
     for i in range((test_env.EPISODE_LEN_SEC+2)*test_env.CTRL_FREQ):
-        action, _states = model.predict(obs,
+        action, _states = model.predict(obs, # type: ignore
                                         deterministic=True
                                         )
         obs, reward, terminated, truncated, info = test_env.step(action)
