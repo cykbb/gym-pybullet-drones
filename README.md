@@ -20,6 +20,9 @@ conda activate drones
 pip3 install --upgrade pip
 pip3 install -e . # if needed, `sudo apt install build-essential` to install `gcc` and build `pybullet`
 
+conda install -c conda-forge libgcc=5.2.0
+conda install -c anaconda libstdcxx-ng
+conda install -c conda-forge gcc=12.1.0
 ```
 
 ## Use
