@@ -33,6 +33,8 @@ from gym_pybullet_drones.envs.MultiHoverAviary import MultiHoverAviary
 from gym_pybullet_drones.utils.utils import sync, str2bool
 from gym_pybullet_drones.utils.enums import ObservationType, ActionType
 
+from stable_baselines3.common.monitor import Monitor
+
 DEFAULT_GUI = True
 DEFAULT_RECORD_VIDEO = False
 DEFAULT_OUTPUT_FOLDER = 'results'
@@ -50,44 +52,36 @@ def run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_
     if not os.path.exists(filename):
         os.makedirs(filename+'/')
 
-    if not multiagent:
-        train_env = make_vec_env(HoverAviary,
-                                 env_kwargs=dict(obs=DEFAULT_OBS, act=DEFAULT_ACT),
-                                 n_envs=1,
-                                 seed=0
-                                 )
-        eval_env = HoverAviary(obs=DEFAULT_OBS, act=DEFAULT_ACT)
-    else:
-        train_env = make_vec_env(MultiHoverAviary,
-                                 env_kwargs=dict(num_drones=DEFAULT_AGENTS, obs=DEFAULT_OBS, act=DEFAULT_ACT),
-                                 n_envs=1,
-                                 seed=0
-                                 )
-        eval_env = MultiHoverAviary(num_drones=DEFAULT_AGENTS, obs=DEFAULT_OBS, act=DEFAULT_ACT)
-
+  
+    train_env = make_vec_env(HoverAviary,
+                                env_kwargs=dict(obs=DEFAULT_OBS, act=DEFAULT_ACT),
+                                n_envs=1,
+                                seed=0
+                                )
+    eval_env = HoverAviary(obs=DEFAULT_OBS, act=DEFAULT_ACT)
+   
     #### Check the environment's spaces ########################
     print('[INFO] Action space:', train_env.action_space)
     print('[INFO] Observation space:', train_env.observation_space)
 
-    #### Train the model #######################################
-    model = PPO('MlpPolicy',
-                train_env,
+    ### Train the model #######################################
+    model = PPO(policy='MlpPolicy',
+                env=train_env,
                 # tensorboard_log=filename+'/tb/',
                 verbose=1)
 
-    #### Target cumulative rewards (problem-dependent) ##########
-    if DEFAULT_ACT == ActionType.ONE_D_RPM:
-        target_reward = 474.15 if not multiagent else 949.5
-    else:
-        target_reward = 467. if not multiagent else 920.
-    callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=target_reward,
+
+    callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=430,
                                                      verbose=1)
+    steps_per_ep = int(eval_env.CTRL_FREQ * eval_env.EPISODE_LEN_SEC)
+    eval_every_episodes = 2
+    eval_freq = int(steps_per_ep * eval_every_episodes)
     eval_callback = EvalCallback(eval_env,
                                  callback_on_new_best=callback_on_best,
                                  verbose=1,
                                  best_model_save_path=filename+'/',
                                  log_path=filename+'/',
-                                 eval_freq=int(1000),
+                                 eval_freq=eval_freq,
                                  deterministic=True,
                                  render=False)
     model.learn(total_timesteps=int(1e7) if local else int(1e2), # shorter training in GitHub Actions pytest
@@ -116,6 +110,8 @@ def run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_
     #     path = filename+'/final_model.zip'
     if os.path.isfile(filename+'/best_model.zip'):
         path = filename+'/best_model.zip'
+    elif os.path.isfile(filename + '/final_model.zip'):
+        path = filename + '/final_model.zip'
     else:
         print("[ERROR]: no model under the specified path", filename)
     model = PPO.load(path) # type: ignore
@@ -181,8 +177,8 @@ def run(multiagent=DEFAULT_MA, output_folder=DEFAULT_OUTPUT_FOLDER, gui=DEFAULT_
         test_env.render()
         print(terminated)
         sync(i, start, test_env.CTRL_TIMESTEP)
-        if terminated:
-            obs = test_env.reset(seed=42, options={})
+        if terminated or truncated:
+            obs, info = test_env.reset(seed=42, options={})
     test_env.close()
 
     if plot and DEFAULT_OBS == ObservationType.KIN:
